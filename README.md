@@ -33,5 +33,5 @@ PS. Кошелек желательно зашифровать, особенно
 Не забудьте указать свой телефон, к которому привязан счет QIWI, в настройках.
 
 Экран настроек
-![alt text](https://raw.githubusercontent.com/sibmodules/webasyst/master/wiki/settings.png)
+![settings](https://raw.githubusercontent.com/sibmodules/webasyst/master/wiki/settings.png)
 
