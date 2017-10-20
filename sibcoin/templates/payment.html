@@ -1,0 +1,105 @@
+<div id="sibcoin">
+    <div class="sibcoin-notpaid">
+        {if !$sibcoin_confirmed}
+        <div class="sibcoin-waitingpayment">
+            {if $sibcoin_before}
+            <h3 class="sibcoin-before">
+                {$sibcoin_before}
+            </h3>
+            {/if}
+            {if $show_qr}
+            <div class="sibcoin-qr"><img src="https://chart.googleapis.com/chart?cht=qr&chl=sibcoin:{$sibcoin_address}?amount={$sibcoin_amount}&label={$wa->appName()}_{$wa->accountName()}_{$sibcoin_order_id}&IS=1&chs=250x250" alt="" title="" /></div>
+            {/if}
+            <p class="sibcoin_amount">Сумма: <strong>{$sibcoin_amount} {$sibcoin_currency_id}</strong></p>
+            <p class="sibcoin-address">Кошелек: <strong><a href="sibcoin:{$sibcoin_address}?amount={$sibcoin_amount}&label={$wa->appName()}_{$wa->accountName()}_{$sibcoin_order_id}&IS=1">{$sibcoin_address}</a></strong></p>
+            {if $sibcoin_after}
+            <p class="small sibcoin-after">
+                {$sibcoin_after}
+            </p>
+            {/if}
+
+            <button id="i-paid" onclick="sibcoin_onClick()">Я оплатил заказ</button>
+        </div>
+        {/if}
+
+        <div class="sibcoin-proccessing" style="display: none;">
+            <h3>Ваш платеж обрабатывается</h3>
+            <p class="small">
+                Скорость подтверждения транзакций зависит от загруженности сети Sibcoin и может длиться от 20 минут до 2 часов.<br>
+                Вы всегда сможете увидеть статус обработки на <a href="{$sibcoin_order_url}">странице заказа</a> и статус информацию о платеже на <a href="{$sibcoin_session_url}" target="_blank">странице обменника</a>.
+            </p>
+        </div>
+
+        <p class="small sibcoin-timer">Обновление информации произойдет через <span data-sibcoin-refresh></span> сек.</p>
+    </div>
+
+    <div class="sibcoin-error" style="display: none;">
+        <p class="large sibcoin-fail">Произошла ошибка при переводе платежа: "<span data-sibcoin-error-text></span>".</p>
+        <p>Если вы уже заплатили, то возврат можно оформить на <a href="{$sibcoin_session_url}" target="_blank">странице обменника</a></p>
+    </div>
+
+    <div class="sibcoin-paid" style="display: none;">
+        <h3 class="sibcoin-done">
+            Ваш платеж полностью получен!
+        </h3>
+    </div>
+</div>
+
+<script>
+    function sibcoin_onClick() {
+        var $sibcoin = $('#sibcoin');
+        $sibcoin.find(".sibcoin-waitingpayment").hide();
+        $sibcoin.find(".sibcoin-proccessing").show();
+        sibcoin_sec = 1;
+    }
+
+    var sibcoin_sec = 0;
+
+    (function () {
+        'use strict';
+
+        var $sibcoin = $('#sibcoin'),
+            counter = 5,
+            timer;
+
+        function timerCounter() {
+            $sibcoin.find('[data-sibcoin-refresh]').text(sibcoin_sec--);
+            if (sibcoin_sec <= -1) {
+                sibcoin_sec = 0;
+                requestStatus();
+            }
+        }
+
+        function requestStatus() {
+            clearInterval(timer);
+            var confirmed = !$sibcoin.find('.sibcoin-waitingpayment').is(":visible");
+            if (confirmed) {
+                $sibcoin.find(".sibcoin-proccessing").show();
+            }
+            $.get("{$sibcoin_url}?order_id={$sibcoin_order_id}&app_id={$sibcoin_app_id}&merchant_id={$sibcoin_merchant_id}&hash={$sibcoin_session}&confirmed=" + (confirmed ? 1 : 0), function (r) {
+                // sibcoin-notpaid -> sibcoin-waitingpayment -> sibcoin-proccessing -> (paid) -> sibcoin-paid
+                if (r['err']) {
+                    $sibcoin.find('[data-sibcoin-error-text]').text(r['err']);
+                    $sibcoin.find(".sibcoin-notpaid").hide();
+                    $sibcoin.find(".sibcoin-paid").hide();
+                    $sibcoin.find(".sibcoin-error").show();
+                }
+
+                if (!r['paid']) {
+                    $sibcoin.find(".sibcoin-notpaid").show();
+                    $sibcoin.find(".sibcoin-paid").hide();
+                }
+                else {
+                    $sibcoin.find('.sibcoin-notpaid').hide();
+                    $sibcoin.find('.sibcoin-paid').show();
+                }
+
+                sibcoin_sec += counter;
+                timer = setInterval(timerCounter, 1000);
+            }, 'json');
+        }
+
+        $sibcoin.find('[data-sibcoin-refresh]').text(sibcoin_sec);
+        timer = setInterval(timerCounter, 1000);
+    }());
+</script>
