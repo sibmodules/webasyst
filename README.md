@@ -1,5 +1,8 @@
-# webasyst
+# webasyst locl
 https://github.com/sibmodules/webasyst/releases/
+
+Как установить модуль с локальным кошельком:
+
 1. На линуксе сделать каталог ~/.sibcoin, а в нем файл sibcoin.conf. На Windows каталог будет %appdata%\Sibcoin В файле sibcoin.conf написать: rpcuser=sibcoinrpc rpcpassword=password rpcallow=127.0.0.1 
 
 2. Скачать кошелек для своей платформы с http://sibcoin.org/download . Для Windows нужно будет установить кошелек, для Linux - просто распаковать архив. 
